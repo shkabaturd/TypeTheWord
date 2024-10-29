@@ -24,7 +24,6 @@ enum Message {
     BookPiked(String),
     ChapterPicked(usize),
     VersePicked(usize),
-    NextVerse,
     Event(Event),
 }
 
@@ -78,11 +77,6 @@ impl AppState {
                 self.current_verse = verse;
                 self.update_text_verse(verse);
             }
-
-            Message::NextVerse => {
-                self.next_verse();
-            }
-
         }
 
     }
@@ -135,9 +129,8 @@ impl AppState {
             span(input_text),
             span(verse_text).color([0.0, 0.0, 0.0, 0.5]),
         ].size(33);
-        let next_button = button("Next verse").on_press(Message::NextVerse);
 
-        let pickers = row![book_picker, chapter_picker, verse_picker, next_button, ];
+        let pickers = row![book_picker, chapter_picker, verse_picker, ];
         
         column![pickers, center(all_text)].spacing(10).into()
     }
