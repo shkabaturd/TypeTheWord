@@ -2,8 +2,10 @@ mod load_verses;
 use std::default;
 
 use load_verses::{load_rst_verses, get_book, Verse, Book};
-use iced::{Element, Task,};
+use iced::{Element, Task, Subscription, keyboard, };
 use iced::widget::{pick_list, column, row, text, button, center};
+use iced::event::{self, Event};
+
 
 
 #[derive(Default)]
@@ -23,6 +25,8 @@ enum Message {
     ChapterPicked(usize),
     VersePicked(usize),
     NextVerse,
+    KeyPressed(String),
+    Event(Event),
 }
 
 impl AppState {
@@ -44,6 +48,15 @@ impl AppState {
     fn update(&mut self, message: Message) {
 
         match message {
+            Message::Event(event) => match event {
+                Event::Keyboard(keyboard::Event::KeyPressed { text: Some(text), ..}) => {
+                    println!("{}", text);
+                    self.user_input.push_str(&text);
+                }
+
+                _=> {}
+            }
+
             Message::BookPiked(book_name) => {
                 self.current_book = get_book(book_name, self.all_verses.clone());
                 self.current_chapter = 1;
@@ -62,6 +75,10 @@ impl AppState {
 
             Message::NextVerse => {
                 self.next_verse();
+            }
+
+            Message::KeyPressed(c) => {
+                println!("You are just pressed {}", c);
             }
         }
 
@@ -91,6 +108,10 @@ impl AppState {
         }
     }
 
+    fn subscription(&self) -> Subscription<Message> {
+        event::listen().map(Message::Event)
+    }
+
     fn view(&self) -> Element<Message> {
   
         let book_names = self.book_names.clone();
@@ -115,9 +136,11 @@ impl AppState {
 
         let pickers = row![book_picker, chapter_picker, verse_picker, next_button];
         
-        column![pickers, center(current_verse_text)].spacing(10).into()
+        column![pickers, text(&self.user_input), center(current_verse_text)].spacing(10).into()
     }
 }
 fn main() {
-   iced::application("TypeTheWord", AppState::update, AppState::view).run_with(AppState::new);
+   iced::application("TypeTheWord", AppState::update, AppState::view)
+   .subscription(AppState::subscription)
+   .run_with(AppState::new);
 }
