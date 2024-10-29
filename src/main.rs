@@ -3,7 +3,7 @@ use std::default;
 
 use load_verses::{load_rst_verses, get_book, Verse, Book};
 use iced::{Element, Task,};
-use iced::widget::{pick_list, column, row, text, button};
+use iced::widget::{pick_list, column, row, text, button, center};
 
 
 #[derive(Default)]
@@ -104,16 +104,18 @@ impl AppState {
         chapter_verses.sort();
         let verse_picker: pick_list::PickList<'_, usize, Vec<usize>, usize, Message> = pick_list(chapter_verses, Some(self.current_verse), Message::VersePicked);
 
-        let current_verse_text = text(&self.current_verse_text);
+        let current_verse_text = 
+            text(&self.current_verse_text).color([0.0, 0.0,0.0, 0.5])
+                                          .size(33)
+                                          .align_x(iced::alignment::Horizontal::Center)
+                                          .align_y(iced::alignment::Vertical::Center)
+                                          .width(800);
 
         let next_button = button("Next verse").on_press(Message::NextVerse);
 
         let pickers = row![book_picker, chapter_picker, verse_picker, next_button];
-
         
-        
-        
-        column![pickers, current_verse_text].spacing(10).into()
+        column![pickers, center(current_verse_text)].spacing(10).into()
     }
 }
 fn main() {
