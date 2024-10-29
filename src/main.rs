@@ -84,6 +84,7 @@ impl AppState {
     fn update_text_verse(&mut self, verse: usize) {
         self.current_verse_text = self.current_book.chapters.get(&self.current_chapter).unwrap()[verse-1].text.clone();
         self.current_verse = verse;
+        self.user_input = String::new();
     }
 
     fn next_verse(&mut self) {
