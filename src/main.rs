@@ -2,8 +2,8 @@ mod load_verses;
 use std::default;
 
 use load_verses::{load_rst_verses, get_book, Verse, Book};
-use iced::{Element, Task, Subscription, keyboard, };
-use iced::widget::{pick_list, column, row, text, button, center};
+use iced::{alignment, keyboard, Element, Fill, Length, Renderer, Shrink, Subscription, Task, Theme};
+use iced::widget::{button, center, column, container, pick_list, row, text, Row, Text, rich_text, span};
 use iced::event::{self, Event};
 
 
@@ -25,7 +25,6 @@ enum Message {
     ChapterPicked(usize),
     VersePicked(usize),
     NextVerse,
-    KeyPressed(String),
     Event(Event),
 }
 
@@ -50,8 +49,15 @@ impl AppState {
         match message {
             Message::Event(event) => match event {
                 Event::Keyboard(keyboard::Event::KeyPressed { text: Some(text), ..}) => {
-                    println!("{}", text);
                     self.user_input.push_str(&text);
+                    if !self.current_verse_text.starts_with(&self.user_input) {
+                        self.user_input.pop().unwrap();
+                    }
+                    if self.user_input == self.current_verse_text {
+                        self.user_input = String::new();
+                        self.next_verse();
+                    }
+                    
                 }
 
                 _=> {}
@@ -77,9 +83,6 @@ impl AppState {
                 self.next_verse();
             }
 
-            Message::KeyPressed(c) => {
-                println!("You are just pressed {}", c);
-            }
         }
 
     }
@@ -125,18 +128,18 @@ impl AppState {
         chapter_verses.sort();
         let verse_picker: pick_list::PickList<'_, usize, Vec<usize>, usize, Message> = pick_list(chapter_verses, Some(self.current_verse), Message::VersePicked);
 
-        let current_verse_text = 
-            text(&self.current_verse_text).color([0.0, 0.0,0.0, 0.5])
-                                          .size(33)
-                                          .align_x(iced::alignment::Horizontal::Center)
-                                          .align_y(iced::alignment::Vertical::Center)
-                                          .width(800);
+        let input_text = self.user_input.clone();
+        let verse_text = &self.current_verse_text[self.user_input.len()..];
 
+        let all_text =rich_text![
+            span(input_text),
+            span(verse_text).color([0.0, 0.0, 0.0, 0.5]),
+        ].size(33);
         let next_button = button("Next verse").on_press(Message::NextVerse);
 
-        let pickers = row![book_picker, chapter_picker, verse_picker, next_button];
+        let pickers = row![book_picker, chapter_picker, verse_picker, next_button, ];
         
-        column![pickers, text(&self.user_input), center(current_verse_text)].spacing(10).into()
+        column![pickers, center(all_text)].spacing(10).into()
     }
 }
 fn main() {
